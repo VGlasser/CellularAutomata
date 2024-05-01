@@ -33,7 +33,7 @@ public class TestScript {
 
             printEnvironment(environment);
             
-            incomplete = updateEnvironment(environment, environmentTmp, water, ground, air, dirt);
+            incomplete = updateEnvironment(environment, environmentTmp, water, ground, air, dirt, seed);
 
             try{
                 Thread.sleep(2000);
@@ -95,7 +95,7 @@ public class TestScript {
 
     //Uses environment as reference and makes the corresponding changes to environmentTmp until all changes are made
     //When all changes are made, environment takes on the values of environmentTmp as its new frame.
-    public static boolean updateEnvironment(ArrayList<ArrayList<String>> environment, ArrayList<ArrayList<String>> environmentTmp, String water, String ground, String air, String dirt){
+    public static boolean updateEnvironment(ArrayList<ArrayList<String>> environment, ArrayList<ArrayList<String>> environmentTmp, String water, String ground, String air, String dirt, String seed){
         boolean incomplete = false;
 
         for(int i=environment.size()-1; i>=0; i--){
@@ -128,6 +128,14 @@ public class TestScript {
                         }
                         else if(j<environment.get(i).size()-1 && environment.get(i+1).get(j+1).equals(air)){
                             incomplete = spread(environmentTmp, i, j, j+1, water, air, environment);
+                        }
+                    }
+                    if(environment.get(i).get(j).equals(seed)){
+                        if(environment.get(i+1).get(j).equals(water)){
+                            incomplete = fall(environmentTmp, i, j, water, seed, environment);
+                        }
+                        else if(environment.get(i+1).get(j).equals(air)){
+                                incomplete = fall(environmentTmp, i, j, air, seed, environment);
                         }
                     }
                 }
