@@ -1,4 +1,3 @@
 # CellularAutomata
 # Objectives
-change parameters in fall() function to reduce clutter
-Consider a waterSpread() function for water
+Find way of smoothing out water so there is as flat as possible

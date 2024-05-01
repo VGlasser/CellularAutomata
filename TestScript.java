@@ -15,6 +15,7 @@ public class TestScript {
         String water = "~";
         String ground = "O";
         String air = "`";
+        String seed = "@";
 
         //The last completed frame of the environment
         environment = setEnvironment(environment);
@@ -27,8 +28,6 @@ public class TestScript {
         //determines whether or not there are future changes for the environment
         boolean incomplete = true;
 
-        // System.out.println(environmentTmp.size());
-        // System.out.println(environment.size());
 
         while (incomplete == true){
 
@@ -104,35 +103,31 @@ public class TestScript {
                 if(i<environment.size()-1){
                     if(environment.get(i).get(j).equals(ground)){
                         if(environment.get(i+1).get(j).equals(water)){
-                            if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
-                                incomplete = fall(environmentTmp, i, j, water, ground);
-                            }
+                            incomplete = fall(environmentTmp, i, j, water, ground, environment);
                         }
                         else if(environment.get(i+1).get(j).equals(air)){
-                            if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
-                                incomplete = fall(environmentTmp, i, j, air, ground);
-                            }
+                                incomplete = fall(environmentTmp, i, j, air, ground, environment);
                         }
                     }
 
                     else if(environment.get(i).get(j).equals(dirt)){
                         if(environment.get(i+1).get(j).equals(water)){
-                            if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
-                                incomplete = fall(environmentTmp, i, j, water, dirt);
-                            }
+                                incomplete = fall(environmentTmp, i, j, water, dirt, environment);
                         }
                         else if(environment.get(i+1).get(j).equals(air)){
-                            if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
-                                incomplete = fall(environmentTmp, i, j, air, dirt);
-                            }
+                                incomplete = fall(environmentTmp, i, j, air, dirt, environment);
                         }
                     }
 
                     else if(environment.get(i).get(j).equals(water)){
-                        if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
-                            if(environment.get(i+1).get(j).equals(air)){
-                                incomplete = fall(environmentTmp, i, j, air, water);
-                            }
+                        if(environment.get(i+1).get(j).equals(air)){
+                            incomplete = fall(environmentTmp, i, j, air, water, environment);
+                        }
+                        else if(j>0 && environment.get(i+1).get(j-1).equals(air)){
+                            incomplete = spread(environmentTmp, i, j, j-1, water, air, environment);
+                        }
+                        else if(j<environment.get(i).size()-1 && environment.get(i+1).get(j+1).equals(air)){
+                            incomplete = spread(environmentTmp, i, j, j+1, water, air, environment);
                         }
                     }
                 }
@@ -146,9 +141,25 @@ public class TestScript {
 
 
     
-    public static boolean fall(ArrayList<ArrayList<String>> environment, int i, int j, String lighter, String heavier){
-        environment.get(i).set(j, lighter);
-        environment.get(i+1).set(j, heavier);
+    public static boolean fall(ArrayList<ArrayList<String>> environment, int i, int j, String lighter, String heavier, ArrayList<ArrayList<String>> environmentRef){
+        if(environment.get(i+1).get(j) == environmentRef.get(i+1).get(j)){
+            environment.get(i).set(j, lighter);
+            environment.get(i+1).set(j, heavier);
+        }
         return true;
     }
+
+    public static boolean spread(ArrayList<ArrayList<String>> environment, int i, int j, int k, String heavier, String lighter, ArrayList<ArrayList<String>> environmentRef){
+        // System.out.println("right side in func");
+        if(environment.get(i).get(j) == environmentRef.get(i).get(j) && environment.get(i+1).get(k) == environmentRef.get(i+1).get(k)){
+            // System.out.println("Right side in cond");
+            environment.get(i).set(j, lighter);
+            // System.out.println(i+"->"+j+","+air);
+            environment.get(i+1).set(k, heavier);
+            // System.out.println(i+"->"+k+","+water);
+        }
+        
+        return true;
+    }
+
 }
