@@ -11,30 +11,33 @@ public class TestScript {
 
         ArrayList<ArrayList<String>> environmentTmp = new ArrayList<ArrayList<String>>(environment);
 
+        String dirt = "D";
         String water = "~";
         String ground = "O";
         String air = "`";
 
+        //The last completed frame of the environment
         environment = setEnvironment(environment);
 
+        //The intermediate state between frames of the environment
         environmentTmp = setEnvironment(environmentTmp);
 
         environmentTmp = deepCopyEnvironment(environmentTmp, environment);
 
+        //determines whether or not there are future changes for the environment
         boolean incomplete = true;
+
+        // System.out.println(environmentTmp.size());
+        // System.out.println(environment.size());
 
         while (incomplete == true){
 
-            System.out.println("environment");
             printEnvironment(environment);
-
-            System.out.println("environmentTmp");
-            printEnvironment(environmentTmp);
             
-            incomplete = updateEnvironment(environment, water, ground, air);
+            incomplete = updateEnvironment(environment, environmentTmp, water, ground, air, dirt);
 
             try{
-                Thread.sleep(750);
+                Thread.sleep(2000);
             }
 
             catch(InterruptedException e){
@@ -71,6 +74,7 @@ public class TestScript {
     }
 
     public static ArrayList<ArrayList<String>> deepCopyEnvironment(ArrayList<ArrayList<String>> environment, ArrayList<ArrayList<String>> source){
+        environment.clear();
         for(ArrayList<String> row : source){
             ArrayList<String> newRow = new ArrayList<>(row);
             environment.add(newRow);
@@ -90,30 +94,58 @@ public class TestScript {
         System.out.println();
     }
 
-    public static boolean updateEnvironment(ArrayList<ArrayList<String>> environment, String water, String ground, String air){
+    //Uses environment as reference and makes the corresponding changes to environmentTmp until all changes are made
+    //When all changes are made, environment takes on the values of environmentTmp as its new frame.
+    public static boolean updateEnvironment(ArrayList<ArrayList<String>> environment, ArrayList<ArrayList<String>> environmentTmp, String water, String ground, String air, String dirt){
         boolean incomplete = false;
+
         for(int i=environment.size()-1; i>=0; i--){
             for (int j = 0; j < environment.get(i).size(); j++){
                 if(i<environment.size()-1){
                     if(environment.get(i).get(j).equals(ground)){
                         if(environment.get(i+1).get(j).equals(water)){
-                            incomplete = fall(environment, i, j, water, ground);
+                            if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
+                                incomplete = fall(environmentTmp, i, j, water, ground);
+                            }
                         }
                         else if(environment.get(i+1).get(j).equals(air)){
-                            incomplete = fall(environment, i, j, air, ground);
+                            if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
+                                incomplete = fall(environmentTmp, i, j, air, ground);
+                            }
                         }
                     }
+
+                    else if(environment.get(i).get(j).equals(dirt)){
+                        if(environment.get(i+1).get(j).equals(water)){
+                            if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
+                                incomplete = fall(environmentTmp, i, j, water, dirt);
+                            }
+                        }
+                        else if(environment.get(i+1).get(j).equals(air)){
+                            if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
+                                incomplete = fall(environmentTmp, i, j, air, dirt);
+                            }
+                        }
+                    }
+
                     else if(environment.get(i).get(j).equals(water)){
-                        if(environment.get(i+1).get(j).equals(air)){
-                            incomplete = fall(environment, i, j, air, water);
+                        if(environment.get(i+1).get(j) == environmentTmp.get(i+1).get(j)){
+                            if(environment.get(i+1).get(j).equals(air)){
+                                incomplete = fall(environmentTmp, i, j, air, water);
+                            }
                         }
                     }
                 }
             }
         }
+
+        environment = deepCopyEnvironment(environment, environmentTmp);
+        
         return incomplete;
     }
 
+
+    
     public static boolean fall(ArrayList<ArrayList<String>> environment, int i, int j, String lighter, String heavier){
         environment.get(i).set(j, lighter);
         environment.get(i+1).set(j, heavier);
