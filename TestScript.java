@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class TestScript {
@@ -16,6 +17,8 @@ public class TestScript {
         String ground = "O";
         String air = "`";
         String seed = "@";
+        String wood = "|";
+        String leaves = "#";
 
         //The last completed frame of the environment
         environment = setEnvironment(environment);
@@ -33,10 +36,10 @@ public class TestScript {
 
             printEnvironment(environment);
             
-            incomplete = updateEnvironment(environment, environmentTmp, water, ground, air, dirt, seed);
+            incomplete = updateEnvironment(environment, environmentTmp, water, ground, air, dirt, seed, wood, leaves);
 
             try{
-                Thread.sleep(2000);
+                Thread.sleep(5000);
             }
 
             catch(InterruptedException e){
@@ -95,7 +98,7 @@ public class TestScript {
 
     //Uses environment as reference and makes the corresponding changes to environmentTmp until all changes are made
     //When all changes are made, environment takes on the values of environmentTmp as its new frame.
-    public static boolean updateEnvironment(ArrayList<ArrayList<String>> environment, ArrayList<ArrayList<String>> environmentTmp, String water, String ground, String air, String dirt, String seed){
+    public static boolean updateEnvironment(ArrayList<ArrayList<String>> environment, ArrayList<ArrayList<String>> environmentTmp, String water, String ground, String air, String dirt, String seed, String wood, String leaves){
         boolean incomplete = false;
 
         for(int i=environment.size()-1; i>=0; i--){
@@ -137,6 +140,9 @@ public class TestScript {
                         else if(environment.get(i+1).get(j).equals(air)){
                                 incomplete = fall(environmentTmp, i, j, air, seed, environment);
                         }
+                        else if(j<environment.get(i).size()-1 && environment.get(i-1).get(j).equals(air) && environment.get(i+1).get(j).equals(dirt)){
+                            incomplete = grow(environmentTmp, i, j, dirt, air, wood, leaves);
+                        }
                     }
                 }
             }
@@ -170,4 +176,80 @@ public class TestScript {
         return true;
     }
 
+    public static boolean grow(ArrayList<ArrayList<String>> environment, int i, int j, String dirt, String air, String wood, String leaves){
+        ArrayList<ArrayList<Boolean>> visited = initEnvironmentBoolean(environment);
+        int dirtCount = countDirt(visited, environment, i, j, dirt);
+        int airCount = countAirAbove(environment, i, j, air);
+        int treeHeight = Math.min(dirtCount, airCount);
+
+
+        environment.get(i).set(j, wood);
+        for(int k=1; k<=treeHeight; ++k){
+            environment.get(i-k).set(j, leaves);
+        }
+        System.out.println(treeHeight);
+
+        return true;
+    }
+
+    public static int countDirt(ArrayList<ArrayList<Boolean>> visited, ArrayList<ArrayList<String>> environment, int i, int j, String dirt){
+
+        int row = i+1;
+        int col = j;
+
+        List<int[]> stack = new ArrayList<>();
+        stack.add(new int[]{row, col});
+
+        int count = 0;
+
+        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+        while (!stack.isEmpty()) {
+            int[] current = stack.remove(stack.size() - 1);
+            int x = current[0];
+            int y = current[1];
+
+            if (x < 0 || x >= environment.size() || y < 0 || y >= environment.get(0).size() ||
+             visited.get(x).get(y)
+              || !environment.get(x).get(y).equals("D")) {
+                continue;
+            }
+
+            visited.get(x).set(y, true);
+            count++;
+
+            for (int[] direction : directions) {
+                int newX = x + direction[0];
+                int newY = y + direction[1];
+                stack.add(new int[]{newX, newY});
+            }
+        }
+
+        return count;
+    }
+
+    public static int countAirAbove(ArrayList<ArrayList<String>> environment, int i, int j, String air){
+        int count = 0;
+        System.out.println("we get here");
+        for(int k = i-1; k>=0; k--){
+            if(environment.get(k).get(j).equals(air)){
+                ++count;
+            }
+        }
+        return count;
+    }
+
+    public static ArrayList<ArrayList<Boolean>> initEnvironmentBoolean(ArrayList<ArrayList<String>> environment) {
+        int rows = environment.size();
+        int cols = environment.get(0).size();
+        ArrayList<ArrayList<Boolean>> visited = new ArrayList<>(rows);
+        for (int i = 0; i < rows; i++) {
+            ArrayList<Boolean> row = new ArrayList<>(cols);
+            for (int j = 0; j < cols; j++) {
+                row.add(false);
+            }
+            visited.add(row);
+        }
+        return visited;
+    }
 }
